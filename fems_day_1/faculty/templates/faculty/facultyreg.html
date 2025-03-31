@@ -1,0 +1,23 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Faculty Registration</title>
+</head>
+<body>
+    <h1>Faculty Registration Form</h1>
+    <form name="registration" method="post" action="insertfaculty">
+        {% csrf_token %}
+        <pre>
+            {% comment %} tf before name means Template Faculty folder {% endcomment %}
+            ID: <input type="text" name="tfid" required><br><br> 
+            Name: <input type="text" name="tfname" required><br><br>  
+            Email: <input type="email" name="tfemail" required><br><br>
+            Department: <input type="text" name="tfdepartment" required><br><br>
+            Password: <input type="password" name="tfpassword" required><br><br> 
+        </pre>
+        <input type="submit" name="reg" value="Register Faculty"><br><br>
+    </form>
+</body>
+</html>
