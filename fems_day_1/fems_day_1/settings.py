@@ -37,8 +37,10 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
-   
     'faculty',
+    'trust_rating',
+    'rest_framework',
+    
 ]
 
 MIDDLEWARE = [
@@ -78,7 +80,7 @@ WSGI_APPLICATION = 'fems_day_1.wsgi.application'
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.mysql',
-        'NAME': 'django_testing1',  # Change this to match your MySQL database name
+        'NAME': 'client_history',  # Change this to match your MySQL database name
         'USER': 'root',
         'PASSWORD': 'Animalsm65',
         'HOST': 'localhost',

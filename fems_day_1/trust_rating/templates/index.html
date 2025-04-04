@@ -1,0 +1,135 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Loan Trust Rating</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <h2>Select a Client</h2>
+    <select id="client-dropdown" class="form-control">
+        <option value="">Select a client...</option>
+    </select>
+    <button id="check-trust-btn" class="btn btn-primary mt-3">Check Trust Rating</button>
+    <h3>Loan History</h3>
+
+
+    <!-- Loan History Table -->
+    <h3 class="mt-5">Loan History</h3>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Loan ID</th>
+                <th>Loan Amount</th>
+                <th>Payment Term</th>
+                <th>Interest Rate (%)</th>
+                <th>Current Monthly Payment</th>
+            </tr>
+        </thead>
+        <tbody id="loan-history-body">
+            <tr><td colspan="5" class="text-center">Select a client to view loan history</td></tr>
+        </tbody>
+    </table>
+
+    <!-- Trust Rating Modal -->
+    <div class="modal fade" id="trustModal" tabindex="-1">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title">Trust Rating</h5>
+                    <button type="button" class="close" data-dismiss="modal">&times;</button>
+                </div>
+                <div class="modal-body">
+                    <p><strong>Client Name:</strong> <span id="client-name"></span></p>
+                    <p><strong>Trust Rating:</strong> <span id="trust-rating"></span>%</p>
+                    <p id="loan-status"></p>
+                </div>
+                <div class="modal-footer">
+                    <button id="proceed-btn" class="btn btn-success" style="display: none;">Proceed to Loan</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
+
+    <script>
+        $(document).ready(function() {
+            
+            console.log("Document ready!");  // Debugging check
+            // Fetch clients for the dropdown
+            $.getJSON('/get-clients/', function(data) {
+                let dropdown = $('#client-dropdown');
+                data.forEach(client => {
+                    dropdown.append(`<option value="${client.client_id}" data-name="${client.fullname}">${client.fullname}</option>`);
+                });
+            });
+
+            // When "Check Trust Rating" button is clicked
+            $('#check-trust-btn').click(function() {
+                console.log("Button clicked!");  // Check if this message appears in console
+                let clientId = $('#client-dropdown').val();
+                if (!clientId) {
+                    alert("Please select a client.");
+                    return;
+                }
+            
+                // Fetch Trust Rating
+                $.getJSON(`/check-trust-rating/${clientId}/`, function(response) {
+                    console.log("Trust Rating Response:", response);
+                    $('#client-name').text($('#client-dropdown option:selected').text());
+                    $('#trust-rating').text(response.trust_rating);
+            
+                    if (response.eligible) {
+                        $('#loan-status').html("<span class='text-success'>Allowed to Loan ✅</span>");
+                        $('#proceed-btn').show();
+                    } else {
+                        $('#loan-status').html("<span class='text-danger'>Not Allowed to Loan ❌</span>");
+                        $('#proceed-btn').hide();
+                    }
+            
+                    $('#trustModal').modal('show');
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error fetching trust rating:", textStatus, errorThrown);
+                });
+            
+                // Fetch Loan History
+                $.getJSON(`/get-loan-history/${clientId}/`, function(loans) {
+                    console.log("Loan History Response:", loans);
+                    let loanTable = $('#loan-history-body');
+                    loanTable.empty();
+            
+                    if (loans.length > 0) {
+                        loans.forEach(loan => {
+                            loanTable.append(`
+                                <tr>
+                                    <td>${loan.loan_id}</td>
+                                    <td>$${loan.loan_amount.toFixed(2)}</td>
+                                    <td>${loan.pay_term} months</td>
+                                    <td>${loan.interest_rate}%</td>
+                                    <td>$${loan.current_payment.toFixed(2)}</td>
+                                </tr>
+                            `);
+                        });
+                    } else {
+                        loanTable.append('<tr><td colspan="5" class="text-center">No loan history found</td></tr>');
+                    }
+                }).fail(function(jqXHR, textStatus, errorThrown) {
+                    console.error("Error fetching loan history:", textStatus, errorThrown);
+                });
+            
+            });
+            
+            
+
+            // Proceed button
+            $('#proceed-btn').click(function() {
+                window.location.href = "/loan-application.html";
+            });
+        });
+    </script>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+</body>
+</html>
