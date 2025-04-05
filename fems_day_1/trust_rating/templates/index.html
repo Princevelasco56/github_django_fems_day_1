@@ -13,7 +13,7 @@
         <option value="">Select a client...</option>
     </select>
     <button id="check-trust-btn" class="btn btn-primary mt-3">Check Trust Rating</button>
-    <h3>Loan History</h3>
+ 
 
 
     <!-- Loan History Table -->
@@ -26,32 +26,52 @@
                 <th>Payment Term</th>
                 <th>Interest Rate (%)</th>
                 <th>Current Monthly Payment</th>
+                <th>Status</th>
+                <th>Trust Rating</th>
             </tr>
         </thead>
         <tbody id="loan-history-body">
-            <tr><td colspan="5" class="text-center">Select a client to view loan history</td></tr>
+            <tr><td colspan="7" class="text-center">Select a client to view loan history</td></tr>
         </tbody>
     </table>
+    
 
-    <!-- Trust Rating Modal -->
-    <div class="modal fade" id="trustModal" tabindex="-1">
-        <div class="modal-dialog">
-            <div class="modal-content">
-                <div class="modal-header">
-                    <h5 class="modal-title">Trust Rating</h5>
-                    <button type="button" class="close" data-dismiss="modal">&times;</button>
-                </div>
-                <div class="modal-body">
-                    <p><strong>Client Name:</strong> <span id="client-name"></span></p>
-                    <p><strong>Trust Rating:</strong> <span id="trust-rating"></span>%</p>
-                    <p id="loan-status"></p>
-                </div>
-                <div class="modal-footer">
-                    <button id="proceed-btn" class="btn btn-success" style="display: none;">Proceed to Loan</button>
-                </div>
+   <!-- Trust Rating Modal -->
+<div id="trustModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="trustModalLabel" aria-hidden="true">
+    <div class="modal-dialog" role="document">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h5 class="modal-title" id="trustModalLabel">Trust Rating</h5>
+                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <h5 id="client-name"></h5>
+                <p>Trust Rating: <span id="trust-rating"></span>%</p>
+                <p id="loan-status"></p>
+                <button id="proceed-btn" class="btn btn-primary" style="display: none;">Proceed to Loan</button>
+                <table class="table">
+                    <thead>
+                        <tr>
+                            <th>Loan ID</th>
+                            <th>Amount</th>
+                            <th>Term</th>
+                            <th>Interest Rate</th>
+                            <th>Current Payment</th>
+                            <th>Status</th>
+                            <th>Trust Rating</th>
+                        </tr>
+                    </thead>
+                    <tbody id="loan-history-body">
+                        <!-- Loan history will populate here -->
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>
+</div>
+
 
 
     <script>
@@ -83,23 +103,22 @@
             
                     if (response.eligible) {
                         $('#loan-status').html("<span class='text-success'>Allowed to Loan ✅</span>");
-                        $('#proceed-btn').show();
+                        $('#proceed-btn').show();  // Show proceed button if eligible
                     } else {
                         $('#loan-status').html("<span class='text-danger'>Not Allowed to Loan ❌</span>");
-                        $('#proceed-btn').hide();
+                        $('#proceed-btn').hide();  // Hide proceed button if not eligible
                     }
             
-                    $('#trustModal').modal('show');
+                    $('#trustModal').modal('show');  // Show the modal with trust rating
                 }).fail(function(jqXHR, textStatus, errorThrown) {
                     console.error("Error fetching trust rating:", textStatus, errorThrown);
                 });
             
-                // Fetch Loan History
                 $.getJSON(`/get-loan-history/${clientId}/`, function(loans) {
                     console.log("Loan History Response:", loans);
                     let loanTable = $('#loan-history-body');
                     loanTable.empty();
-            
+                    
                     if (loans.length > 0) {
                         loans.forEach(loan => {
                             loanTable.append(`
@@ -109,17 +128,20 @@
                                     <td>${loan.pay_term} months</td>
                                     <td>${loan.interest_rate}%</td>
                                     <td>$${loan.current_payment.toFixed(2)}</td>
+                                    <td>${loan.status || 'N/A'}</td>  <!-- Add status if available -->
+                                    <td>${loan.trust_rating ? loan.trust_rating.toFixed(2) : 'N/A'}</td> <!-- Display trust rating if available -->
                                 </tr>
                             `);
                         });
                     } else {
-                        loanTable.append('<tr><td colspan="5" class="text-center">No loan history found</td></tr>');
+                        loanTable.append('<tr><td colspan="7" class="text-center">No loan history found</td></tr>');
                     }
                 }).fail(function(jqXHR, textStatus, errorThrown) {
                     console.error("Error fetching loan history:", textStatus, errorThrown);
                 });
-            
+                
             });
+            
             
             
 

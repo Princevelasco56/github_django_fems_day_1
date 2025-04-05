@@ -1,35 +1,41 @@
 from django.shortcuts import render
 from django.http import HttpResponse, JsonResponse
+from rest_framework.decorators import api_view
 from django.db import models
+from rest_framework.response import Response
 from django.urls import path
 from django.shortcuts import get_object_or_404
 from django.shortcuts import render
 from django.conf import settings
 from django.conf.urls.static import static
 from .models import Client, Loan, Payment
-from rest_framework.decorators import api_view
-from rest_framework.response import Response
 
 # Create your views here.
 # API Views
 @api_view(['GET'])
 def check_trust_rating(request, client_id):
-    loans = Loan.objects.filter(client__client_id=client_id)  # Get loans related to the client
-    payments = Payment.objects.filter(loan__in=loans)
+    try:
+        # Fetch loans for the client
+        loans = Loan.objects.filter(client_id=client_id)
+        
+        if not loans:
+            return Response({"error": "No loans found for this client."}, status=404)
+        
+        payments = Payment.objects.filter(loan__in=loans)
+        
+        # Calculate trust rating
+        total_payments = payments.count()
+        on_time_payments = payments.filter(status='On-time').count()
 
-    total_payments = payments.count()
-    on_time_payments = payments.filter(status='On-time').count()
+        trust_rating = (on_time_payments / total_payments) * 100 if total_payments > 0 else 0
+
+        return Response({
+            "trust_rating": round(trust_rating, 2),
+            "eligible": trust_rating >= 80  # Eligible if trust rating >= 80
+        })
+    except Exception as e:
+        return Response({"error": str(e)}, status=500)
     
-    trust_rating = (on_time_payments / total_payments) * 100 if total_payments > 0 else 0
-
-    # Update trust rating for all client loans
-    loans.update(trust_rating=trust_rating)
-    
-    return Response({
-        "trust_rating": trust_rating,
-        "eligible": trust_rating >= 80
-    })
-
 def loan_history(request, client_id):
     client = Client.objects.get(client_id=client_id)
     loans = Loan.objects.filter(client=client)
@@ -87,10 +93,64 @@ def add_loan(request, client_id):
 
     return JsonResponse({'message': 'Loan added successfully!', 'loan_id': loan.loan_id})
 
+@api_view(['GET'])
 def get_loan_history(request, client_id):
-    """Fetch all loan records for a client"""
-    loans = Loan.objects.filter(client__client_id=client_id).values(  # Correct field reference
-        "loan_id", "loan_amount", "pay_term", "interest_rate", "current_payment"
-    )
-    
-    return JsonResponse(list(loans), safe=False)
+    try:
+        # Fetch loans for the client
+        loans = Loan.objects.filter(client_id=client_id)  # Query from the 'loan' table
+        
+        loan_data = []
+        for loan in loans:
+            loan_data.append({
+                'loan_id': loan.loan_id,
+                'loan_amount': float(loan.loan_amount),
+                'pay_term': loan.pay_term,
+                'interest_rate': float(loan.interest_rate),
+                'current_payment': float(loan.current_payment),
+                # 'status': loan.status,  # Add status if you have it defined in the Loan model
+                # 'trust_rating': calculate_trust_rating(loan)  # You can include trust rating calculation here if needed
+            })
+        
+        return Response(loan_data)
+    except Loan.DoesNotExist:
+        return Response({"error": "Client or loans not found"}, status=404)
+
+    try:
+        client = Client.objects.get(client_id=client_id)
+        loans = Loan.objects.filter(client=client)
+        loan_data = []
+        for loan in loans:
+            # Optionally, get the latest payment status:
+            latest_payment = Payment.objects.filter(loan=loan).order_by('-payment_date').first()
+            status = latest_payment.status if latest_payment else "No payments"
+            loan_data.append({
+                'loan_id': loan.loan_id,
+                'loan_amount': float(loan.loan_amount),
+                'pay_term': loan.pay_term,
+                'interest_rate': float(loan.interest_rate),
+                'current_payment': float(loan.current_payment),
+                'status': status,
+                'trust_rating': float(loan.trust_rating),
+            })
+        return JsonResponse(loan_data, safe=False)
+    except Client.DoesNotExist:
+        return JsonResponse({"error": "Client not found"}, status=404)
+
+    try:
+        client = Client.objects.get(client_id=client_id)
+        loans = Loan.objects.filter(client=client)
+
+        loan_data = [
+            {
+                'loan_id': loan.loan_id,
+                'loan_amount': float(loan.loan_amount),
+                'pay_term': loan.pay_term,
+                'interest_rate': float(loan.interest_rate),
+                'current_payment': float(loan.current_payment),
+            }
+            for loan in loans
+        ]
+
+        return JsonResponse(loan_data, safe=False)
+    except Client.DoesNotExist:
+        return JsonResponse({"error": "Client not found"}, status=404)

@@ -39,7 +39,6 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'faculty',
     'trust_rating',
-    'rest_framework',
     
 ]
 
