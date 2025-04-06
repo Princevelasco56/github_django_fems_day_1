@@ -9,7 +9,7 @@
 </head>
 <body class="container mt-5">
 
-    <h3>Select Client</h3>
+    <h3>Select Profile</h3>
     <select id="client-select" class="form-control mb-3">
         <option value="">-- Choose a client --</option>
         {% for client in clients %}
@@ -18,7 +18,7 @@
     </select>
     
 
-    <button id="check-trust" class="btn btn-info">Check Trust Rating</button>
+    <button id="check-trust" class="btn btn-info">Apply Loan</button>
 
     <!-- Trust Rating Modal -->
     <div class="modal fade" id="trustModal" tabindex="-1" role="dialog">
@@ -49,6 +49,16 @@
         </div>
       </div>
     </div>
+
+    <h3>Loan Application Summary</h3>
+        <div class="card p-3 shadow-sm">
+        <p><strong>Client ID:</strong> <span id="client-id-display"></span></p>
+        <p><strong>Client Name:</strong> <span id="client-name-display"></span></p>
+        <p><strong>Trust Rating:</strong> <span id="trust-rating-display"></span>%</p>
+        <p><strong>Loan Amount:</strong> ₱ <span id="loan-amount-display"></span></p>
+        <p><strong>Payment Term:</strong> <span id="pay-term-display"></span> months</p>
+        <p><strong>Interest Rate:</strong> <span id="interest-rate-display"></span>%</p>
+        </div>
 
     <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
     <script>
@@ -81,6 +91,48 @@
                     const url = `/loan_application?client_id=${clientId}&client_name=${encodeURIComponent(clientName)}&trust_rating=${trustRating}`;
                     window.location.href = url;
                 });
+            });
+
+            $('#calculate-loan').click(function () {
+                const clientId = $('#client-select').val();
+                const clientName = $('#client-select option:selected').text();
+        
+                const loanAmount = parseFloat($('#loan-amount').val());
+                const payTerm = $('#pay-term').val();
+                const interestRate = parseFloat($('#interest-rate').val());
+        
+                if (!loanAmount || !payTerm || !interestRate) {
+                    alert("Please fill all fields");
+                    return;
+                }
+        
+                // Calculate schedule
+                const interest = loanAmount * (interestRate / 100);
+                const totalPayable = loanAmount + interest;
+                const monthlyPayment = totalPayable / payTerm;
+        
+                let scheduleHTML = `<h6 class="mt-3">Payment Schedule</h6><table class="table table-bordered"><thead><tr><th>Month</th><th>Payment</th></tr></thead><tbody>`;
+        
+                for (let i = 1; i <= payTerm; i++) {
+                    scheduleHTML += `<tr><td>${i}</td><td>₱ ${monthlyPayment.toFixed(2)}</td></tr>`;
+                }
+        
+                scheduleHTML += `</tbody></table>`;
+                scheduleHTML += `<p><strong>Total Payment:</strong> ₱ ${totalPayable.toFixed(2)}</p>`;
+                scheduleHTML += `<p><strong>Interest:</strong> ₱ ${interest.toFixed(2)}</p>`;
+        
+                $('#payment-schedule').html(scheduleHTML);
+        
+                // 👉 Print Summary
+                $('#client-id-display').text(clientId);
+                $('#client-name-display').text(clientName);
+                $('#trust-rating-display').text(trustRating);
+                $('#loan-amount-display').text(loanAmount.toFixed(2));
+                $('#pay-term-display').text(payTerm);
+                $('#interest-rate-display').text(interestRate.toFixed(2));
+        
+                // Optional: hide the modal
+                $('#trustModal').modal('hide');
             });
         });
     
