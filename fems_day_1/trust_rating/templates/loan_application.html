@@ -1,0 +1,91 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ADD LOAN</title>
+    <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+
+    <h3>Select Client</h3>
+    <select id="client-select" class="form-control mb-3">
+        <option value="">-- Choose a client --</option>
+        {% for client in clients %}
+            <option value="{{ client.client_id }}">{{ client.fullname }}</option>
+        {% endfor %}
+    </select>
+    
+
+    <button id="check-trust" class="btn btn-info">Check Trust Rating</button>
+
+    <!-- Trust Rating Modal -->
+    <div class="modal fade" id="trustModal" tabindex="-1" role="dialog">
+      <div class="modal-dialog" role="document">
+        <div class="modal-content p-3">
+          <div class="modal-header">
+            <h5 class="modal-title">Trust Rating</h5>
+            <button type="button" class="close" data-dismiss="modal">&times;</button>
+          </div>
+          <div class="modal-body">
+            <p id="trust-rating-result"></p>
+            <div id="loan-form-container" style="display: none;">
+                <hr>
+                <h5>Loan Details</h5>
+                <input type="number" id="loan-amount" class="form-control mb-2" placeholder="Loan Amount">
+                <select id="pay-term" class="form-control mb-2">
+                    <option value="">Select Term (Months)</option>
+                    <option value="12">12</option>
+                    <option value="24">24</option>
+                    <option value="36">36</option>
+                    <option value="42">42</option>
+                </select>
+                <input type="number" id="interest-rate" class="form-control mb-2" placeholder="Interest Rate (%)">
+                <button id="calculate-loan" class="btn btn-success btn-block">Generate Payment Schedule</button>
+            </div>
+            <div id="payment-schedule" class="mt-3"></div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script src="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/js/bootstrap.min.js"></script>
+    <script>
+        let trustRating = null; // Global variable to hold trust rating
+    
+        $('#check-trust').click(function() {
+            const clientId = $('#client-select').val();
+            const clientName = $('#client-select option:selected').text();
+    
+            if (!clientId) return alert("Select a client first");
+    
+            $.get(`/check-trust-rating/${clientId}/`, function(data) {
+                trustRating = data.trust_rating; // Save to global variable
+                $('#trust-rating-result').html(`Trust Rating for <strong>${clientName}</strong>: ${trustRating}%`);
+    
+                if (trustRating >= 80) {
+                    $('#loan-form-container').show();
+                    $('#trust-rating-result').append(`<br><span class="text-success">Client is eligible for a loan.</span>`);
+                    $('#trust-rating-result').append(`<br><button id="proceed-btn" class="btn btn-primary mt-2">Proceed to Loan Application</button>`);
+                } else {
+                    $('#loan-form-container').hide();
+                    $('#trust-rating-result').append(`<br><span class="text-danger">Client is not eligible for a loan.</span>`);
+                }
+    
+                // Show modal
+                $('#trustModal').modal('show');
+    
+                // Attach the click handler to proceed-btn inside the modal
+                $('#proceed-btn').click(function () {
+                    const url = `/loan_application?client_id=${clientId}&client_name=${encodeURIComponent(clientName)}&trust_rating=${trustRating}`;
+                    window.location.href = url;
+                });
+            });
+        });
+    
+        // Loan calculation script remains the same...
+    </script>
+    
+</body>
+</html>

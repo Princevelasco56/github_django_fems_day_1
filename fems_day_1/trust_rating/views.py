@@ -61,6 +61,9 @@ def get_clients(request):
 def index(request):
     return render(request, 'index.html')
 
+def loan_application(request):
+    return render(request, 'loan_application.html')
+
 def create_loan(client_id, trust_rating):
     """Assigns loan amount based on the trust rating."""
     if trust_rating >= 90:
@@ -154,3 +157,7 @@ def get_loan_history(request, client_id):
         return JsonResponse(loan_data, safe=False)
     except Client.DoesNotExist:
         return JsonResponse({"error": "Client not found"}, status=404)
+    
+def loan_application(request):
+    clients = Client.objects.all()
+    return render(request, 'loan_application.html', {'clients': clients})

@@ -26,8 +26,8 @@
                 <th>Payment Term</th>
                 <th>Interest Rate (%)</th>
                 <th>Current Monthly Payment</th>
-                <th>Status</th>
-                <th>Trust Rating</th>
+                {% comment %} <th>Status</th>
+                <th>Trust Rating</th> {% endcomment %}
             </tr>
         </thead>
         <tbody id="loan-history-body">
@@ -37,40 +37,40 @@
     
 
    <!-- Trust Rating Modal -->
-<div id="trustModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="trustModalLabel" aria-hidden="true">
-    <div class="modal-dialog" role="document">
-        <div class="modal-content">
-            <div class="modal-header">
-                <h5 class="modal-title" id="trustModalLabel">Trust Rating</h5>
-                <button type="button" class="close" data-dismiss="modal" aria-label="Close">
-                    <span aria-hidden="true">&times;</span>
-                </button>
-            </div>
-            <div class="modal-body">
-                <h5 id="client-name"></h5>
-                <p>Trust Rating: <span id="trust-rating"></span>%</p>
-                <p id="loan-status"></p>
-                <button id="proceed-btn" class="btn btn-primary" style="display: none;">Proceed to Loan</button>
-                <table class="table">
-                    <thead>
-                        <tr>
-                            <th>Loan ID</th>
-                            <th>Amount</th>
-                            <th>Term</th>
-                            <th>Interest Rate</th>
-                            <th>Current Payment</th>
-                            <th>Status</th>
-                            <th>Trust Rating</th>
-                        </tr>
-                    </thead>
-                    <tbody id="loan-history-body">
-                        <!-- Loan history will populate here -->
-                    </tbody>
-                </table>
+    <div id="trustModal" class="modal fade" tabindex="-1" role="dialog" aria-labelledby="trustModalLabel" aria-hidden="true">
+        <div class="modal-dialog" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="trustModalLabel">Trust Rating</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <h5 id="client-name"></h5>
+                    <p>Trust Rating: <span id="trust-rating"></span>%</p>
+                    <p id="loan-status"></p>
+                    <button id="proceed-btn" class="btn btn-primary" style="display: none;">Proceed to Loan</button>
+                    {% comment %} <table class="table">
+                        <thead>
+                            <tr>
+                                <th>Loan ID</th>
+                                <th>Amount</th>
+                                <th>Term</th>
+                                <th>Interest Rate</th>
+                                <th>Current Payment</th>
+                                <th>Status</th>
+                                <th>Trust Rating</th>
+                            </tr>
+                        </thead>
+                        <tbody id="loan-history-body">
+                            <!-- Loan history will populate here -->
+                        </tbody>
+                    </table> {% endcomment %}
+                </div>
             </div>
         </div>
     </div>
-</div>
 
 
 
@@ -128,8 +128,8 @@
                                     <td>${loan.pay_term} months</td>
                                     <td>${loan.interest_rate}%</td>
                                     <td>$${loan.current_payment.toFixed(2)}</td>
-                                    <td>${loan.status || 'N/A'}</td>  <!-- Add status if available -->
-                                    <td>${loan.trust_rating ? loan.trust_rating.toFixed(2) : 'N/A'}</td> <!-- Display trust rating if available -->
+                                    {% comment %} <td>${loan.status || 'N/A'}</td>  <!-- Add status if available -->
+                                    <td>${loan.trust_rating ? loan.trust_rating.toFixed(2) : 'N/A'}</td> <!-- Display trust rating if available --> {% endcomment %}
                                 </tr>
                             `);
                         });
@@ -141,14 +141,16 @@
                 });
                 
             });
-            
-            
-            
 
-            // Proceed button
+          
             $('#proceed-btn').click(function() {
-                window.location.href = "/loan-application.html";
+                window.location.href = "/loan_application/";  // ✅ Correct path
             });
+            
+            // Proceed button
+            {% comment %} $('#proceed-btn').click(function() {
+                window.location.href = "/loan_application";
+            }); {% endcomment %}
         });
     </script>
 
