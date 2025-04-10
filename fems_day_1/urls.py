@@ -16,8 +16,13 @@ Including another URLconf
 """
 from django.contrib import admin
 from django.urls import path, include
+from trust_rating import views  # Import views from your app
 
 urlpatterns = [
     path('admin/', admin.site.urls),
-    path('', include('faculty.urls')), #Include new folder each
+    # path('', include('faculty.urls')), #Include new folder each
+    path('', include('trust_rating.urls')),#Include new folder each
+    path('client-history/', views.client_history, name='client_history'),
+    path('trust/', include('trust_rating.urls')),  # trust_rating.urls includes this line
+
 ]

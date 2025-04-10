@@ -1,0 +1,61 @@
+<!-- client_history.html -->
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Loan Trust Rating</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+</head>
+<body class="container mt-5">
+    <h2>Select a Client</h2>
+    <form method="get">
+        <select name="client_id" class="form-control" onchange="this.form.submit()">
+            <option value="">Select a client...</option>
+            {% for client in clients %}
+                <option value="{{ client.client_id }}" {% if client.client_id|stringformat:"s" == request.GET.client_id %}selected{% endif %}>
+                    {{ client.fullname }}
+                </option>
+            {% endfor %}
+        </select>
+    </form>
+
+    {% if selected_client %}
+        <div class="mt-4">
+            <h4>Trust Rating for {{ selected_client.fullname }}</h4>
+            <p><strong>Rating:</strong> {{ trust_rating|floatformat:2 }}%</p>
+            {% if eligible %}
+                <p class="text-success">✅ Eligible to Loan</p>
+                <a href="{% url 'add_loan' selected_client.client_id %}" class="btn btn-success">Proceed to Loan</a>
+            {% else %}
+                <p class="text-danger">❌ Not Eligible to Loan</p>
+            {% endif %}
+        </div>
+
+        <h3 class="mt-5">Loan History</h3>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Loan ID</th>
+                    <th>Loan Amount</th>
+                    <th>Payment Term</th>
+                    <th>Interest Rate (%)</th>
+                    <th>Monthly Payment</th>
+                </tr>
+            </thead>
+            <tbody>
+                {% for loan in loans %}
+                    <tr>
+                        <td>{{ loan.loan_id }}</td>
+                        <td>${{ loan.loan_amount }}</td>
+                        <td>{{ loan.pay_term }} months</td>
+                        <td>{{ loan.interest_rate }}</td>
+                        <td>${{ loan.current_payment }}</td>
+                    </tr>
+                {% empty %}
+                    <tr><td colspan="5" class="text-center">No loan history found</td></tr>
+                {% endfor %}
+            </tbody>
+        </table>
+    {% endif %}
+</body>
+</html>
